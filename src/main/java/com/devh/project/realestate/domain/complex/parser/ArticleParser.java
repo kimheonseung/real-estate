@@ -42,7 +42,7 @@ public class ArticleParser extends Parser<NaverArticleList> {
             return objectMapper.readValue(
                     document.parser(org.jsoup.parser.Parser.xmlParser()).body().text(), new TypeReference<>() {});
         } catch (Exception e) {
-            log.error("failed to parse document.", e);
+//            log.error("failed to parse document.", e);
             throw new ParserException(e.getMessage());
         }
     }

@@ -64,13 +64,29 @@ public class JsoupDocumentProvider {
         try {
             final String url = articleUrl(complexNo);
             jsoupHeaderProvider.update("authorization", token);
+            jsoupHeaderProvider.update("Referer", defaultArticleUrl(complexNo)+"?a=APT:ABYG:JGC&b=A1&e=RETAIL&ad=true");
+            return Jsoup.connect(url)
+                    .ignoreContentType(true)
+                    .headers(jsoupHeaderProvider.getHeader())
+                    .get();
+        } catch (Exception e) {
+//            log.error("jsoup failed. - "+complexNo, e);
+//            throw new JsoupException(e.getMessage());
+            return doGetArticleFull(complexNo);
+        }
+    }
+
+    public Document doGetArticleFull(String complexNo) {
+        try {
+            final String url = articleUrlFull(complexNo);
+            jsoupHeaderProvider.update("authorization", token);
             jsoupHeaderProvider.update("Referer", defaultArticleUrl(complexNo)+"?a=APT:ABYG:OPST:JGC:OBYG:JGB&b=A1&e=RETAIL&ad=true");
             return Jsoup.connect(url)
                     .ignoreContentType(true)
                     .headers(jsoupHeaderProvider.getHeader())
                     .get();
         } catch (Exception e) {
-            log.error("jsoup failed.", e);
+            log.error("jsoup failed. - "+complexNo, e);
             throw new JsoupException(e.getMessage());
         }
     }
@@ -88,6 +104,13 @@ public class JsoupDocumentProvider {
     }
 
     private String articleUrl(String complexNo) {
+        // &tag=%3A%3A%3A%3A%3A%3A%3A%3A&rentPriceMin=0&rentPriceMax=900000000&priceMin=0&priceMax=900000000&areaMin=0&areaMax=900000000
+//        return String.format("%s?realEstateType=APT%%3AABYG%%3AOPST%%3AJGC%%3AOBYG%%3AJGB&tradeType=A1&oldBuildYears&recentlyBuildYears&minHouseHoldCount&maxHouseHoldCount&showArticle=false&sameAddressGroup=true&minMaintenanceCost&maxMaintenanceCost&priceType=RETAIL&directions=&page=1&complexNo=%s&buildingNos=&areaNos=&type=list&order=rank",
+        return String.format("%s?realEstateType=APT%%3AABYG%%3AJGC%%3AJGB&tradeType=A1&oldBuildYears&recentlyBuildYears&minHouseHoldCount&maxHouseHoldCount&showArticle=false&sameAddressGroup=true&minMaintenanceCost&maxMaintenanceCost&priceType=RETAIL&directions=&page=1&complexNo=%s&buildingNos=&areaNos=&type=list&order=rank",
+                defaultArticleUrl(complexNo), complexNo);
+    }
+
+    private String articleUrlFull(String complexNo) {
         // &tag=%3A%3A%3A%3A%3A%3A%3A%3A&rentPriceMin=0&rentPriceMax=900000000&priceMin=0&priceMax=900000000&areaMin=0&areaMax=900000000
         return String.format("%s?realEstateType=APT%%3AABYG%%3AOPST%%3AJGC%%3AOBYG%%3AJGB&tradeType=A1&oldBuildYears&recentlyBuildYears&minHouseHoldCount&maxHouseHoldCount&showArticle=false&sameAddressGroup=true&minMaintenanceCost&maxMaintenanceCost&priceType=RETAIL&directions=&page=1&complexNo=%s&buildingNos=&areaNos=&type=list&order=rank",
                 defaultArticleUrl(complexNo), complexNo);

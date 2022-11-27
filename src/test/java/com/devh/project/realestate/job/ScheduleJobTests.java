@@ -13,10 +13,13 @@ import com.devh.project.realestate.domain.region.repository.CityRepository;
 import com.devh.project.realestate.domain.region.repository.DongRepository;
 import com.devh.project.realestate.domain.region.repository.GuRepository;
 import org.jsoup.nodes.Document;
+import org.jsoup.parser.Parser;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.util.CollectionUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,7 +52,7 @@ public class ScheduleJobTests {
 
         Document document = jsoupDocumentProvider.doGetComplex("1154510200");
         NaverComplexList naverComplexList = naverComplexListParser.parseNaverComplexList(document);
-        System.out.println(naverComplexList.toString());
+        System.out.println(naverComplexList);
 //        List<Complex> complexes = naverComplexList.getComplexList().stream()
 //                .map(NaverComplex::toComplex).collect(Collectors.toList());
 //
@@ -58,15 +61,23 @@ public class ScheduleJobTests {
 
     @Test
     void testComplexOverview() {
-        Document document = jsoupDocumentProvider.doGetOverview("115472");
+        Document document = jsoupDocumentProvider.doGetOverview("13002");
         Overview overview = overviewParser.parseOverview(document);
         System.out.println(overview);
     }
 
     @Test
     void testArticles() {
-        Document document = jsoupDocumentProvider.doGetArticle("115472");
+        Document document = jsoupDocumentProvider.doGetArticle("18796");
+        System.out.println(document.parser(Parser.xmlParser()).body().text());
+
         List<Article> articles = articleParser.parseArticles(document);
+
+//        if (CollectionUtils.isEmpty(articles)) {
+//            Document _document = jsoupDocumentProvider.doGetArticleFull("18796");
+//            articles = articleParser.parseArticles(_document);
+//        }
+
         articles.forEach(System.out::println);
     }
 
@@ -81,7 +92,9 @@ public class ScheduleJobTests {
                     final String complexNo = naverComplex.getComplexNo();
                     return naverComplex.toComplex(
                             overviewParser.parseOverview(jsoupDocumentProvider.doGetOverview(complexNo)),
-                            articleParser.parseArticles(jsoupDocumentProvider.doGetArticle(complexNo)));
+                            naverComplex.getDealCount() > 0
+                                    ? articleParser.parseArticles(jsoupDocumentProvider.doGetArticle(complexNo))
+                                    : Collections.emptyList());
                 }).collect(Collectors.toList());
 
         complexes.forEach(System.out::println);

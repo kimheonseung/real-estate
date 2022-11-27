@@ -6,21 +6,27 @@ import com.devh.project.realestate.domain.complex.entity.Complex;
 import com.devh.project.realestate.domain.complex.parser.ArticleParser;
 import com.devh.project.realestate.domain.complex.parser.NaverComplexListParser;
 import com.devh.project.realestate.domain.complex.parser.OverviewParser;
+import com.devh.project.realestate.domain.complex.repository.ComplexRepository;
+import com.devh.project.realestate.domain.complex.vo.article.Article;
 import com.devh.project.realestate.domain.region.entity.City;
 import com.devh.project.realestate.domain.region.entity.Dong;
 import com.devh.project.realestate.domain.region.entity.Gu;
 import com.devh.project.realestate.domain.region.repository.CityRepository;
 import com.devh.project.realestate.domain.region.repository.DongRepository;
 import com.devh.project.realestate.domain.region.repository.GuRepository;
-import com.devh.project.realestate.domain.complex.repository.ComplexRepository;
+import com.devh.project.realestate.exception.ParserException;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
+@Slf4j
 public class ScheduleJob {
     private final CityRepository cityRepository;
     private final GuRepository guRepository;
@@ -69,15 +75,23 @@ public class ScheduleJob {
                     List<Complex> complexes = naverComplexList.getComplexList().stream()
                             .map(naverComplex -> {
                                 final String complexNo = naverComplex.getComplexNo();
-
                                 Document overviewDocument = jsoupDocumentProvider.doGetOverview(complexNo);
                                 Document articleDocument = jsoupDocumentProvider.doGetArticle(complexNo);
 
+                                List<Article> articles = articleParser.parseArticles(articleDocument);
+
+                                if (CollectionUtils.isEmpty(articles)) {
+                                    Document articleFullDocument = jsoupDocumentProvider.doGetArticleFull(complexNo);
+                                    articles = articleParser.parseArticles(articleFullDocument);
+                                }
+
                                 return naverComplex.toComplex(
                                         overviewParser.parseOverview(overviewDocument),
-                                        articleParser.parseArticles(articleDocument));
+                                        articles);
                             }).collect(Collectors.toList());
 
+                    log.info(String.format("%s %s %s 매물 저장중... [%d건]",
+                            city.getName(), gu.getName(), dong.getName(), complexes.size()));
                     complexRepository.saveAll(complexes);
                 }
             }
