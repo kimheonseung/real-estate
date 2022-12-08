@@ -8,6 +8,7 @@ import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.net.SocketTimeoutException;
 import java.util.Collections;
 
 @Component
@@ -29,6 +30,11 @@ public class JsoupDocumentProvider {
     public Document doGet(String url) {
         try {
             return Jsoup.connect(url).ignoreContentType(true).get();
+        } catch (SocketTimeoutException e) {
+            log.warn("timout. "+e.getMessage());
+            try { Thread.sleep(1500); } catch (InterruptedException ie) { }
+
+            return doGet(url);
         } catch (Exception e) {
             log.error("jsoup failed.", e);
             throw new JsoupException(e.getMessage());
@@ -38,6 +44,11 @@ public class JsoupDocumentProvider {
     public Document doGetComplex(String complexNo) {
         try {
             return Jsoup.connect(complexUrl(complexNo)).ignoreContentType(true).get();
+        } catch (SocketTimeoutException e) {
+            log.warn("timout. "+e.getMessage());
+            try { Thread.sleep(1500); } catch (InterruptedException ie) { }
+
+            return doGetComplex(complexNo);
         } catch (Exception e) {
             log.error("jsoup failed.", e);
             throw new JsoupException(e.getMessage());
@@ -54,6 +65,11 @@ public class JsoupDocumentProvider {
                     .headers(jsoupHeaderProvider.getHeader())
                     .data(Collections.singletonMap("sameAddressGroup", "false"))
                     .get();
+        } catch (SocketTimeoutException e) {
+            log.warn("timout. "+e.getMessage());
+            try { Thread.sleep(1500); } catch (InterruptedException ie) { }
+
+            return doGetOverview(complexNo);
         } catch (Exception e) {
             log.error("jsoup failed.", e);
             throw new JsoupException(e.getMessage());
@@ -69,6 +85,11 @@ public class JsoupDocumentProvider {
                     .ignoreContentType(true)
                     .headers(jsoupHeaderProvider.getHeader())
                     .get();
+        } catch (SocketTimeoutException e) {
+            log.warn("timout. "+e.getMessage());
+            try { Thread.sleep(1500); } catch (InterruptedException ie) { }
+
+            return doGetArticle(complexNo);
         } catch (Exception e) {
 //            log.error("jsoup failed. - "+complexNo, e);
 //            throw new JsoupException(e.getMessage());
@@ -85,6 +106,11 @@ public class JsoupDocumentProvider {
                     .ignoreContentType(true)
                     .headers(jsoupHeaderProvider.getHeader())
                     .get();
+        } catch (SocketTimeoutException e) {
+            log.warn("timout. "+e.getMessage());
+            try { Thread.sleep(1500); } catch (InterruptedException ie) { }
+
+            return doGetArticleFull(complexNo);
         } catch (Exception e) {
             log.error("jsoup failed. - "+complexNo, e);
             throw new JsoupException(e.getMessage());

@@ -17,7 +17,6 @@ import java.util.List;
 
 @Document(
         indexName = "complex-#{@dateStringProvider.getCurrentDateString()}",
-        createIndex = false,
         writeTypeHint = WriteTypeHint.FALSE
 )
 @Getter
